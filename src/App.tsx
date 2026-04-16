@@ -35,6 +35,13 @@ export default function App() {
   const [outputName, setOutputName] = useState('merged-file');
   const [nameError, setNameError] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [quality, setQuality] = useState<'small' | 'medium' | 'large'>('large');
+
+  const qualitySettings = {
+    small: { scale: 0.5, label: 'Nhỏ (Tiết kiệm)' },
+    medium: { scale: 0.75, label: 'Vừa (Cân bằng)' },
+    large: { scale: 1.0, label: 'Gốc (Chất lượng)' }
+  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map(file => ({
@@ -90,7 +97,14 @@ export default function App() {
         if (fileItem.type === 'application/pdf') {
           const pdf = await PDFDocument.load(fileBytes);
           const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-          copiedPages.forEach((page) => mergedPdf.addPage(page));
+          
+          for (const page of copiedPages) {
+            if (quality !== 'large') {
+              const scale = qualitySettings[quality].scale;
+              page.scale(scale, scale);
+            }
+            mergedPdf.addPage(page);
+          }
         } else if (fileItem.type.startsWith('image/')) {
           let image;
           if (fileItem.type === 'image/jpeg' || fileItem.type === 'image/jpg') {
@@ -99,12 +113,16 @@ export default function App() {
             image = await mergedPdf.embedPng(fileBytes);
           }
           
-          const page = mergedPdf.addPage([image.width, image.height]);
+          const scale = qualitySettings[quality].scale;
+          const width = image.width * scale;
+          const height = image.height * scale;
+          
+          const page = mergedPdf.addPage([width, height]);
           page.drawImage(image, {
             x: 0,
             y: 0,
-            width: image.width,
-            height: image.height,
+            width: width,
+            height: height,
           });
         }
         
@@ -301,6 +319,28 @@ export default function App() {
                     <div className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
                       .pdf
                     </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
+                    Kích thước file
+                  </label>
+                  <div className="grid grid-cols-3 gap-2 p-1.5 bg-slate-50/50 rounded-2xl border border-slate-100">
+                    {(Object.keys(qualitySettings) as Array<keyof typeof qualitySettings>).map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => setQuality(q)}
+                        className={cn(
+                          "py-2 text-[10px] font-black rounded-xl transition-all uppercase tracking-wider",
+                          quality === q 
+                            ? "bg-white text-primary shadow-sm border border-slate-100" 
+                            : "text-slate-400 hover:text-slate-600"
+                        )}
+                      >
+                        {q === 'small' ? 'Nhỏ' : q === 'medium' ? 'Vừa' : 'Gốc'}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
