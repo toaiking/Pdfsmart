@@ -75,6 +75,32 @@ export default function App() {
     setMergedFileUrl(null);
   };
 
+  const compressImage = async (file: File, scale: number): Promise<Uint8Array> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject('Canvas error');
+        
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        canvas.toBlob((blob) => {
+          if (!blob) return reject('Blob error');
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(new Uint8Array(reader.result as ArrayBuffer));
+          reader.readAsArrayBuffer(blob);
+        }, 'image/jpeg', scale < 1 ? 0.7 : 0.9);
+      };
+      img.onerror = () => reject('Image load error');
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const mergeFiles = async () => {
     if (files.length === 0) return;
     
@@ -89,12 +115,14 @@ export default function App() {
     
     try {
       const mergedPdf = await PDFDocument.create();
+      mergedPdf.setCreator('Smart PDF App');
+      mergedPdf.setProducer('Smart PDF App');
       
       for (let i = 0; i < files.length; i++) {
         const fileItem = files[i];
-        const fileBytes = await fileItem.file.arrayBuffer();
         
         if (fileItem.type === 'application/pdf') {
+          const fileBytes = await fileItem.file.arrayBuffer();
           const pdf = await PDFDocument.load(fileBytes);
           const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
           
@@ -108,16 +136,14 @@ export default function App() {
             mergedPdf.addPage(page);
           }
         } else if (fileItem.type.startsWith('image/')) {
-          let image;
-          if (fileItem.type === 'image/jpeg' || fileItem.type === 'image/jpg') {
-            image = await mergedPdf.embedJpg(fileBytes);
-          } else {
-            image = await mergedPdf.embedPng(fileBytes);
-          }
-          
           const scale = qualitySettings[quality].scale;
-          const width = image.width * scale;
-          const height = image.height * scale;
+          const compressedBytes = quality === 'large' 
+            ? new Uint8Array(await fileItem.file.arrayBuffer())
+            : await compressImage(fileItem.file, scale);
+          
+          const image = await mergedPdf.embedJpg(compressedBytes);
+          const width = image.width;
+          const height = image.height;
           
           const page = mergedPdf.addPage([width, height]);
           page.drawImage(image, {
@@ -131,7 +157,10 @@ export default function App() {
         setProgress(Math.round(((i + 1) / files.length) * 90));
       }
       
-      const pdfBytes = await mergedPdf.save({ useObjectStreams: true });
+      const pdfBytes = await mergedPdf.save({ 
+        useObjectStreams: true,
+        addDefaultPage: false
+      });
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       
@@ -163,22 +192,30 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-slate-950 font-sans flex flex-col relative">
-      {/* Dynamic Background */}
+    <div className="h-screen w-screen overflow-hidden bg-[#020617] font-sans flex flex-col relative">
+      {/* Ultra-Vibrant Dynamic Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/20 blur-[120px] rounded-full animate-pulse delay-700" />
-        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-indigo-500/10 blur-[100px] rounded-full" />
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-primary/30 blur-[150px] rounded-full animate-pulse mix-blend-screen" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-accent/30 blur-[150px] rounded-full animate-pulse delay-1000 mix-blend-screen" />
+        <div className="absolute top-[30%] left-[20%] w-[40%] h-[40%] bg-indigo-600/20 blur-[120px] rounded-full animate-bounce duration-[10s]" />
+        
+        {/* Grid Overlay */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px]" />
       </div>
 
       <main className="flex-1 flex flex-col p-4 md:p-6 gap-6 overflow-hidden relative z-10">
         {/* Top Section: Hero & Settings */}
         <div className="flex flex-col gap-4 flex-shrink-0">
-          {/* Hero Container - Compact & Full Width */}
-          <div className="w-full p-4 md:p-5 bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-linear-to-br from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+          {/* Hero Container - Ultra Vibrant */}
+          <div className="w-full p-4 md:p-5 bg-white/[0.03] backdrop-blur-2xl rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(0,161,241,0.1)] relative overflow-hidden group">
+            <div className="absolute inset-0 bg-linear-to-r from-primary/20 via-transparent to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+            
+            {/* Neon Border Effect */}
+            <div className="absolute inset-0 border border-primary/20 rounded-3xl group-hover:border-primary/50 transition-colors duration-500" />
+            
             <div className="relative flex items-center justify-center gap-6">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center overflow-hidden shadow-2xl shadow-primary/20 bg-white p-1.5 flex-shrink-0 transform group-hover:rotate-6 transition-transform duration-500">
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center overflow-hidden shadow-[0_0_30px_rgba(0,161,241,0.3)] bg-white p-1.5 flex-shrink-0 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
                 <img 
                   src="https://i.postimg.cc/59K4PjLQ/logopdf.png" 
                   alt="Smart PDF Logo" 
@@ -187,27 +224,27 @@ export default function App() {
                 />
               </div>
               <div className="text-left">
-                <h1 className="text-2xl md:text-4xl font-black tracking-tighter text-white leading-none">
-                  Smart <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-accent">PDF App</span>
+                <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-white leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                  Smart <span className="text-transparent bg-clip-text bg-linear-to-r from-primary via-indigo-400 to-accent animate-gradient-x">PDF App</span>
                 </h1>
-                <p className="text-slate-400 font-black text-[10px] md:text-xs uppercase tracking-[0.3em] mt-1 flex items-center gap-2">
-                  <span className="w-4 h-[1px] bg-primary/40" />
+                <p className="text-primary font-black text-[10px] md:text-xs uppercase tracking-[0.4em] mt-2 flex items-center gap-3">
+                  <span className="w-8 h-[2px] bg-linear-to-r from-primary to-transparent" />
                   Gộp tệp tin siêu tốc
-                  <span className="w-4 h-[1px] bg-primary/40" />
+                  <span className="w-8 h-[2px] bg-linear-to-l from-primary to-transparent" />
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Settings Container - Full Width */}
-          <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-5 md:p-7 relative overflow-hidden shadow-2xl">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-linear-to-br from-primary/10 to-accent/10 rounded-full -mr-24 -mt-24 blur-3xl" />
+          {/* Settings Container - Vibrant Glass */}
+          <div className="bg-white/[0.03] backdrop-blur-2xl rounded-3xl border border-white/10 p-5 md:p-7 relative overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.4)]">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-br from-primary/20 to-accent/20 rounded-full -mr-32 -mt-32 blur-[100px] animate-pulse" />
             
             <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 items-center">
               {/* Filename Setting */}
               <div className="lg:col-span-4 space-y-3">
-                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                  <Settings2 size={14} className="text-primary" />
+                <label className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-[0.2em]">
+                  <Settings2 size={14} className="animate-spin-slow" />
                   Tên file kết quả
                 </label>
                 <div className="relative group">
@@ -220,11 +257,11 @@ export default function App() {
                     }}
                     placeholder="Nhập tên file..."
                     className={cn(
-                      "w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none focus:ring-4 transition-all pr-14",
-                      nameError ? "border-red-500/50 focus:ring-red-500/10 bg-red-500/5" : "focus:ring-primary/20 focus:border-primary/50 focus:bg-white/10"
+                      "w-full bg-white/[0.05] border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none focus:ring-4 transition-all pr-16 group-hover:border-primary/30",
+                      nameError ? "border-red-500/50 focus:ring-red-500/20 bg-red-500/10" : "focus:ring-primary/20 focus:border-primary/60 focus:bg-white/[0.08]"
                     )}
                   />
-                  <div className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 font-black text-xs">
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 text-primary/60 font-black text-xs">
                     .pdf
                   </div>
                 </div>
@@ -232,23 +269,29 @@ export default function App() {
 
               {/* Quality Setting */}
               <div className="lg:col-span-4 space-y-3">
-                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                  <FileCode size={14} className="text-accent" />
-                  Kích thước file
+                <label className="flex items-center gap-2 text-[10px] font-black text-accent uppercase tracking-[0.2em]">
+                  <FileCode size={14} />
+                  Kích thước file (Resize)
                 </label>
-                <div className="flex p-1.5 bg-white/5 rounded-2xl border border-white/10">
+                <div className="flex p-1.5 bg-white/[0.05] rounded-2xl border border-white/10 group-hover:border-accent/30 transition-colors">
                   {(Object.keys(qualitySettings) as Array<keyof typeof qualitySettings>).map((q) => (
                     <button
                       key={q}
                       onClick={() => setQuality(q)}
                       className={cn(
-                        "flex-1 py-2.5 text-[10px] font-black rounded-xl transition-all uppercase tracking-wider",
+                        "flex-1 py-3 text-[10px] font-black rounded-xl transition-all uppercase tracking-widest relative overflow-hidden group/btn",
                         quality === q 
-                          ? "bg-linear-to-r from-primary to-accent text-white shadow-lg shadow-primary/20" 
-                          : "text-slate-400 hover:text-white hover:bg-white/5"
+                          ? "text-white shadow-[0_0_20px_rgba(0,161,241,0.4)]" 
+                          : "text-slate-500 hover:text-white hover:bg-white/5"
                       )}
                     >
-                      {q === 'small' ? 'Nhỏ' : q === 'medium' ? 'Vừa' : 'Gốc'}
+                      {quality === q && (
+                        <motion.div 
+                          layoutId="quality-bg"
+                          className="absolute inset-0 bg-linear-to-r from-primary to-accent z-0"
+                        />
+                      )}
+                      <span className="relative z-10">{q === 'small' ? 'Nhỏ' : q === 'medium' ? 'Vừa' : 'Gốc'}</span>
                     </button>
                   ))}
                 </div>
@@ -257,31 +300,31 @@ export default function App() {
               {/* Actions & Progress */}
               <div className="lg:col-span-4 flex flex-col justify-end pt-2">
                 <div className="flex justify-between items-center mb-3 px-1">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
                     {files.length} tệp • {formatBytes(files.reduce((acc, f) => acc + f.size, 0))}
                   </span>
                   {isMerging && <span className="text-[10px] font-black text-primary animate-pulse uppercase tracking-widest">Đang xử lý {progress}%</span>}
                 </div>
 
                 {isMerging ? (
-                  <div className="h-12 flex items-center px-5 bg-white/5 rounded-2xl border border-white/10 relative overflow-hidden">
+                  <div className="h-14 flex items-center px-6 bg-white/[0.05] rounded-2xl border border-white/10 relative overflow-hidden">
                     <motion.div 
-                      className="absolute left-0 top-0 bottom-0 bg-linear-to-r from-primary to-accent opacity-30"
+                      className="absolute left-0 top-0 bottom-0 bg-linear-to-r from-primary via-indigo-500 to-accent"
                       initial={{ width: 0 }}
                       animate={{ width: `${progress}%` }}
                     />
                     <div className="relative flex items-center justify-center w-full">
-                       <Loader2 size={18} className="animate-spin text-primary mr-3" />
-                       <span className="text-[10px] font-black text-white uppercase tracking-widest">Đang gộp...</span>
+                       <Loader2 size={20} className="animate-spin text-white mr-3" />
+                       <span className="text-[10px] font-black text-white uppercase tracking-widest drop-shadow-md">Đang nén & gộp...</span>
                     </div>
                   </div>
                 ) : mergedFileUrl ? (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-4">
                     <button 
                       onClick={downloadFile}
-                      className="w-full bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/20 transition-all active:scale-95 text-[10px] tracking-widest uppercase"
+                      className="w-full bg-linear-to-r from-emerald-400 to-teal-500 hover:from-emerald-300 hover:to-teal-400 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 shadow-[0_10px_40px_rgba(16,185,129,0.3)] transition-all active:scale-95 text-[11px] tracking-[0.2em] uppercase"
                     >
-                      <Download size={16} />
+                      <Download size={18} />
                       TẢI VỀ
                     </button>
                     <button 
@@ -289,7 +332,7 @@ export default function App() {
                         setMergedFileUrl(null);
                         setProgress(0);
                       }}
-                      className="w-full bg-white/5 hover:bg-white/10 text-white font-black py-3.5 rounded-2xl border border-white/10 transition-all active:scale-95 text-[10px] tracking-widest uppercase"
+                      className="w-full bg-white/[0.05] hover:bg-white/[0.1] text-white font-black py-4 rounded-2xl border border-white/10 transition-all active:scale-95 text-[11px] tracking-[0.2em] uppercase"
                     >
                       LÀM MỚI
                     </button>
@@ -299,12 +342,12 @@ export default function App() {
                     onClick={mergeFiles}
                     disabled={files.length === 0}
                     className={cn(
-                      "w-full bg-linear-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-2xl shadow-primary/30 transition-all active:scale-95 text-[10px] tracking-widest uppercase",
-                      files.length === 0 && "opacity-50 cursor-not-allowed grayscale shadow-none"
+                      "w-full bg-linear-to-r from-primary via-indigo-600 to-accent hover:scale-[1.02] text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 shadow-[0_15px_50px_rgba(0,161,241,0.4)] transition-all active:scale-95 text-[11px] tracking-[0.2em] uppercase group/merge",
+                      files.length === 0 && "opacity-50 cursor-not-allowed grayscale shadow-none hover:scale-100"
                     )}
                   >
                     GỘP FILE NGAY
-                    <ChevronRight size={18} />
+                    <ChevronRight size={20} className="group-hover/merge:translate-x-1 transition-transform" />
                   </button>
                 )}
               </div>
@@ -314,83 +357,91 @@ export default function App() {
 
         {/* Bottom Section: File List - Occupies 70% of height */}
         <div className="flex-1 min-h-0 h-[70vh] flex flex-col">
-          <div className="bg-white/5 backdrop-blur-xl rounded-[32px] border border-white/10 flex-1 flex flex-col overflow-hidden shadow-2xl">
+          <div className="bg-white/[0.02] backdrop-blur-3xl rounded-[40px] border border-white/10 flex-1 flex flex-col overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative">
+            {/* Neon Glow Corner */}
+            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
+            
             {files.length === 0 ? (
               <div 
                 {...getRootProps()} 
                 className={cn(
                   "flex-1 flex flex-col items-center justify-center p-10 transition-all cursor-pointer group relative",
-                  isDragActive ? "bg-primary/10" : "hover:bg-white/5"
+                  isDragActive ? "bg-primary/10" : "hover:bg-white/[0.02]"
                 )}
               >
                 <input {...getInputProps()} />
-                <div className="w-28 h-28 rounded-[40px] bg-white/5 flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-white/10 group-hover:shadow-2xl group-hover:shadow-primary/20 transition-all duration-500 border border-white/10">
-                  <Upload className={cn("text-slate-600 transition-colors duration-500", isDragActive ? "text-primary animate-bounce" : "group-hover:text-primary")} size={48} />
+                <div className="w-32 h-32 rounded-[48px] bg-white/[0.03] flex items-center justify-center mb-10 group-hover:scale-110 group-hover:bg-white/[0.08] group-hover:shadow-[0_0_60px_rgba(0,161,241,0.2)] transition-all duration-700 border border-white/10 relative">
+                  <div className="absolute inset-0 bg-linear-to-br from-primary/20 to-accent/20 rounded-[48px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <Upload className={cn("text-slate-700 transition-all duration-700 relative z-10", isDragActive ? "text-primary animate-bounce scale-110" : "group-hover:text-primary group-hover:scale-110")} size={56} />
                 </div>
-                <h2 className="text-3xl font-black text-white mb-3 tracking-tight">Kéo & Thả tệp PDF</h2>
-                <p className="text-slate-400 font-bold text-sm uppercase tracking-[0.3em]">Hoặc nhấp để chọn từ máy tính</p>
+                <h2 className="text-4xl font-black text-white mb-4 tracking-tight group-hover:text-primary transition-colors duration-500">Kéo & Thả tệp PDF</h2>
+                <p className="text-slate-500 font-black text-sm uppercase tracking-[0.4em] opacity-60 group-hover:opacity-100 transition-all">Hoặc nhấp để chọn từ máy tính</p>
                 
-                {/* Decorative dots */}
-                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                {/* Decorative Elements */}
+                <div className="absolute bottom-12 flex gap-3">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="w-2 h-2 rounded-full bg-white/[0.05] group-hover:bg-primary/20 transition-colors" style={{ transitionDelay: `${i * 100}ms` }} />
                   ))}
                 </div>
               </div>
             ) : (
               <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="p-5 border-b border-white/10 flex justify-between items-center bg-white/5 backdrop-blur-md z-10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    <h2 className="text-xs font-black text-white uppercase tracking-[0.3em]">Danh sách tệp tin ({files.length})</h2>
+                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/[0.03] backdrop-blur-2xl z-10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_rgba(0,161,241,0.8)] animate-pulse" />
+                    <h2 className="text-sm font-black text-white uppercase tracking-[0.4em]">Danh sách tệp tin ({files.length})</h2>
                   </div>
                   <button 
                     onClick={removeAll}
-                    className="text-[10px] font-black text-red-400 hover:text-red-300 uppercase tracking-widest transition-colors flex items-center gap-2"
+                    className="text-[11px] font-black text-red-500 hover:text-red-400 uppercase tracking-widest transition-all flex items-center gap-2 px-4 py-2 bg-red-500/5 rounded-xl border border-red-500/10 hover:bg-red-500/10"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={16} />
                     Xóa tất cả
                   </button>
                 </div>
                 
-                <div className="flex-1 overflow-y-auto p-5 custom-scrollbar space-y-4">
+                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-5">
                   <Reorder.Group 
                     axis="y" 
                     values={files} 
                     onReorder={setFiles}
-                    className="space-y-4"
+                    className="space-y-5"
                   >
                     <AnimatePresence mode="popLayout">
                       {files.map((file) => (
                         <Reorder.Item 
                           key={file.id}
                           value={file}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, scale: 0.95 }}
-                          className="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-center gap-5 shadow-lg hover:shadow-primary/5 hover:bg-white/10 hover:border-white/20 transition-all group cursor-grab active:cursor-grabbing"
+                          className="bg-white/[0.03] border border-white/10 rounded-[28px] p-6 flex items-center gap-6 shadow-2xl hover:shadow-primary/10 hover:bg-white/[0.06] hover:border-white/20 transition-all group cursor-grab active:cursor-grabbing relative overflow-hidden"
                         >
-                          <div className="text-slate-600 group-hover:text-primary transition-colors">
-                            <GripVertical size={20} />
+                          {/* Item Glow */}
+                          <div className="absolute top-0 left-0 w-1 h-full bg-linear-to-b from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
+                          
+                          <div className="text-slate-700 group-hover:text-primary transition-colors">
+                            <GripVertical size={24} />
                           </div>
                           
-                          <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 overflow-hidden border border-white/10 shadow-inner group-hover:scale-105 transition-transform">
+                          <div className="w-16 h-16 rounded-2xl bg-white/[0.05] flex items-center justify-center flex-shrink-0 overflow-hidden border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-500">
                             {file.preview ? (
                               <img src={file.preview} alt="" className="w-full h-full object-cover" />
                             ) : (
-                              <FileText className="text-primary" size={24} />
+                              <FileText className="text-primary" size={28} />
                             )}
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-white truncate text-base group-hover:text-primary transition-colors">
+                            <h3 className="font-bold text-white truncate text-lg group-hover:text-primary transition-colors duration-300">
                               {file.name}
                             </h3>
-                            <div className="flex items-center gap-3 mt-1.5">
-                              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-md">
+                            <div className="flex items-center gap-4 mt-2">
+                              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white/[0.05] px-3 py-1 rounded-lg border border-white/5">
                                 {formatBytes(file.size)}
                               </span>
-                              <span className="text-[9px] font-black text-primary uppercase tracking-widest">
+                              <span className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 rounded-full bg-accent" />
                                 {file.type.split('/')[1]?.toUpperCase() || 'FILE'}
                               </span>
                             </div>
@@ -401,9 +452,9 @@ export default function App() {
                               e.stopPropagation();
                               removeFile(file.id);
                             }}
-                            className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:bg-red-500/10 hover:text-red-500 transition-all"
+                            className="w-12 h-12 rounded-2xl flex items-center justify-center text-slate-700 hover:bg-red-500 hover:text-white transition-all shadow-lg active:scale-90"
                           >
-                            <X size={20} />
+                            <X size={24} />
                           </button>
                         </Reorder.Item>
                       ))}
@@ -412,13 +463,13 @@ export default function App() {
 
                   <div 
                     {...getRootProps()} 
-                    className="mt-6 border-2 border-dashed border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center hover:border-primary/40 hover:bg-white/5 transition-all cursor-pointer group"
+                    className="mt-8 border-2 border-dashed border-white/10 rounded-[32px] p-10 flex flex-col items-center justify-center hover:border-primary/60 hover:bg-white/[0.03] transition-all cursor-pointer group relative overflow-hidden"
                   >
-                    <input {...getInputProps()} />
-                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mb-3 group-hover:bg-primary/10 transition-colors">
-                      <FilePlus2 className="text-slate-600 group-hover:text-primary transition-colors" size={20} />
+                    <div className="absolute inset-0 bg-linear-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="w-14 h-14 rounded-2xl bg-white/[0.05] flex items-center justify-center mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-500 relative z-10">
+                      <FilePlus2 className="text-slate-600 group-hover:text-primary transition-colors" size={28} />
                     </div>
-                    <p className="text-[10px] font-black text-slate-500 group-hover:text-primary transition-colors uppercase tracking-[0.3em]">
+                    <p className="text-[11px] font-black text-slate-500 group-hover:text-white transition-colors uppercase tracking-[0.4em] relative z-10">
                       + THÊM TỆP TIN KHÁC
                     </p>
                   </div>
