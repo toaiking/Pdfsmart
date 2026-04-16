@@ -165,44 +165,178 @@ export default function App() {
       <main className="max-w-5xl w-full space-y-8">
         <div className="text-center space-y-2 mb-12">
           <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/50 backdrop-blur-sm rounded-2xl border border-white/50 shadow-sm mb-4">
-            <div className="w-6 h-6 bg-linear-to-br from-primary to-accent rounded-md flex items-center justify-center text-white">
-              <FilePlus2 size={14} />
+            <div className="w-8 h-8 rounded-md flex items-center justify-center overflow-hidden">
+              <img 
+                src="https://i.postimg.cc/59K4PjLQ/logopdf.png" 
+                alt="Smart PDF Logo" 
+                className="w-full h-full object-contain"
+                referrerPolicy="no-referrer"
+              />
             </div>
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">SmartPDF Pro</span>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Smart PDF Pro</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">
             Gộp tệp tin <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-accent">siêu tốc</span>
           </h1>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* Left Content Area */}
-          <div className="lg:col-span-7">
+        <div className="space-y-8">
+          {/* Top Section: Settings & Actions */}
+          <div className="modern-card !p-6 md:!p-8 overflow-hidden relative">
+            {/* Decorative background element */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-primary/5 to-accent/5 rounded-full -mr-16 -mt-16 blur-3xl" />
+            
+            <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              {/* Filename Setting */}
+              <div className="lg:col-span-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                    <Settings2 size={12} className="text-primary" />
+                    Tên file kết quả
+                  </label>
+                  <AnimatePresence>
+                    {nameError && (
+                      <motion.span 
+                        initial={{ opacity: 0, x: 5 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="text-[10px] font-bold text-red-500 uppercase"
+                      >
+                        Trống!
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <div className="relative group">
+                  <input 
+                    type="text" 
+                    value={outputName}
+                    onChange={(e) => {
+                      setOutputName(e.target.value);
+                      if (e.target.value.trim()) setNameError(false);
+                    }}
+                    placeholder="Nhập tên file..."
+                    className={cn(
+                      "w-full bg-slate-50/50 border rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-800 focus:outline-none focus:ring-4 transition-all pr-14",
+                      nameError ? "border-red-200 focus:ring-red-50 bg-red-50/30" : "border-slate-100 focus:ring-primary/5 focus:border-primary/30 focus:bg-white"
+                    )}
+                  />
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 font-black text-xs">
+                    .pdf
+                  </div>
+                </div>
+              </div>
+
+              {/* Quality Setting */}
+              <div className="lg:col-span-4 space-y-3">
+                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                  <FileCode size={12} className="text-accent" />
+                  Kích thước file
+                </label>
+                <div className="flex p-1 bg-slate-50/80 rounded-2xl border border-slate-100/50">
+                  {(Object.keys(qualitySettings) as Array<keyof typeof qualitySettings>).map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => setQuality(q)}
+                      className={cn(
+                        "flex-1 py-2.5 text-[10px] font-black rounded-xl transition-all uppercase tracking-wider",
+                        quality === q 
+                          ? "bg-white text-primary shadow-sm border border-slate-100" 
+                          : "text-slate-400 hover:text-slate-600"
+                      )}
+                    >
+                      {q === 'small' ? 'Nhỏ' : q === 'medium' ? 'Vừa' : 'Gốc'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions & Progress */}
+              <div className="lg:col-span-4 flex flex-col justify-end h-full pt-2 lg:pt-0">
+                <div className="flex justify-between items-center mb-3 px-1">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {files.length} tệp • {formatBytes(files.reduce((acc, f) => acc + f.size, 0))}
+                  </span>
+                  {isMerging && <span className="text-[10px] font-black text-primary animate-pulse uppercase tracking-widest">Đang xử lý {progress}%</span>}
+                </div>
+
+                {isMerging ? (
+                  <div className="space-y-3">
+                    <div className="progress-bar-modern !h-12 flex items-center px-4 bg-slate-50 border border-slate-100">
+                      <motion.div 
+                        className="progress-fill-modern !h-8"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                         <Loader2 size={18} className="animate-spin text-primary mr-2" />
+                         <span className="text-[10px] font-black text-primary uppercase tracking-widest">Đang gộp...</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : mergedFileUrl ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      onClick={downloadFile}
+                      className="w-full modern-btn !py-3.5 !from-green-500 !to-emerald-600 flex items-center justify-center gap-2 shadow-xl shadow-green-500/20 !px-4 text-xs"
+                    >
+                      <Download size={16} />
+                      TẢI VỀ
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setMergedFileUrl(null);
+                        setProgress(0);
+                      }}
+                      className="w-full modern-btn-secondary !py-3.5 !px-4 text-xs"
+                    >
+                      LÀM MỚI
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={mergeFiles}
+                    disabled={files.length === 0}
+                    className={cn(
+                      "w-full modern-btn !py-3.5 flex items-center justify-center gap-2 text-xs",
+                      files.length === 0 && "opacity-50 cursor-not-allowed grayscale shadow-none"
+                    )}
+                  >
+                    GỘP FILE NGAY
+                    <ChevronRight size={18} />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Section: File List / Dropzone */}
+          <div className="w-full">
             {files.length === 0 ? (
               <div 
                 {...getRootProps()} 
                 className={cn(
-                  "modern-card dropzone-modern flex flex-col items-center justify-center transition-all cursor-pointer min-h-[450px]",
+                  "modern-card dropzone-modern flex flex-col items-center justify-center transition-all cursor-pointer min-h-[350px]",
                   isDragActive ? "border-primary bg-white/80 scale-[0.99] shadow-2xl" : ""
                 )}
               >
                 <input {...getInputProps()} />
-                <div className="w-24 h-24 bg-linear-to-br from-primary/10 to-accent/10 rounded-full flex items-center justify-center text-primary mb-8">
-                  <Upload size={48} />
+                <div className="w-20 h-20 bg-linear-to-br from-primary/10 to-accent/10 rounded-full flex items-center justify-center text-primary mb-6">
+                  <Upload size={40} />
                 </div>
-                <h2 className="text-2xl font-extrabold text-slate-800 mb-3">Bắt đầu ngay</h2>
-                <p className="text-slate-400 text-center max-w-xs mb-10 text-sm font-medium leading-relaxed">
-                  Kéo thả PDF hoặc hình ảnh vào đây để gộp chúng thành một tệp duy nhất.
+                <h2 className="text-xl font-extrabold text-slate-800 mb-2">Kéo thả tệp vào đây</h2>
+                <p className="text-slate-400 text-center max-w-xs mb-8 text-sm font-medium leading-relaxed">
+                  Hỗ trợ PDF, JPG, PNG. Nhấn để chọn tệp từ máy tính.
                 </p>
-                <button className="modern-btn">
-                  Chọn tệp từ máy
+                <button className="modern-btn !py-3 !px-6 text-sm">
+                  Chọn tệp tin
                 </button>
               </div>
             ) : (
               <div className="modern-card !p-8">
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-xl font-extrabold text-slate-800 flex items-center gap-3">
-                    Tệp đã chọn
+                    Danh sách tệp tin
                     <span className="text-xs font-black text-white bg-linear-to-r from-primary to-accent px-3 py-1 rounded-full shadow-sm">
                       {files.length}
                     </span>
@@ -211,7 +345,7 @@ export default function App() {
                     onClick={removeAll}
                     className="text-xs text-slate-400 hover:text-red-500 font-bold transition-all hover:scale-105"
                   >
-                    LÀM TRỐNG
+                    XÓA TẤT CẢ
                   </button>
                 </div>
 
@@ -272,139 +406,6 @@ export default function App() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Right Sidebar - Action */}
-          <div className="lg:col-span-5">
-            <div className="modern-card !p-8 sticky top-12">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-linear-to-br from-primary/10 to-accent/10 rounded-xl flex items-center justify-center text-primary">
-                  <Settings2 size={20} />
-                </div>
-                <h2 className="text-xl font-extrabold text-slate-800">Cài đặt</h2>
-              </div>
-
-              <div className="space-y-8">
-                <div>
-                  <div className="flex justify-between items-end mb-3">
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                      Tên file kết quả
-                    </label>
-                    <AnimatePresence>
-                      {nameError && (
-                        <motion.span 
-                          initial={{ opacity: 0, x: 10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0 }}
-                          className="text-[10px] font-bold text-red-500 uppercase"
-                        >
-                          Vui lòng nhập tên file!
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                  <div className="relative">
-                    <input 
-                      type="text" 
-                      value={outputName}
-                      onChange={(e) => {
-                        setOutputName(e.target.value);
-                        if (e.target.value.trim()) setNameError(false);
-                      }}
-                      className={cn(
-                        "w-full bg-white border rounded-2xl px-5 py-4 text-base font-bold text-slate-800 focus:outline-none focus:ring-4 transition-all shadow-sm pr-16",
-                        nameError ? "border-red-300 focus:ring-red-100" : "border-slate-100 focus:ring-primary/10 focus:border-primary"
-                      )}
-                    />
-                    <div className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
-                      .pdf
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
-                    Kích thước file
-                  </label>
-                  <div className="grid grid-cols-3 gap-2 p-1.5 bg-slate-50/50 rounded-2xl border border-slate-100">
-                    {(Object.keys(qualitySettings) as Array<keyof typeof qualitySettings>).map((q) => (
-                      <button
-                        key={q}
-                        onClick={() => setQuality(q)}
-                        className={cn(
-                          "py-2 text-[10px] font-black rounded-xl transition-all uppercase tracking-wider",
-                          quality === q 
-                            ? "bg-white text-primary shadow-sm border border-slate-100" 
-                            : "text-slate-400 hover:text-slate-600"
-                        )}
-                      >
-                        {q === 'small' ? 'Nhỏ' : q === 'medium' ? 'Vừa' : 'Gốc'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="p-6 bg-slate-50/50 rounded-3xl space-y-4 border border-white/60">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Số lượng:</span>
-                    <span className="font-black text-slate-800">{files.length} tệp</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dung lượng:</span>
-                    <span className="font-black text-slate-800">
-                      {formatBytes(files.reduce((acc, f) => acc + f.size, 0))}
-                    </span>
-                  </div>
-                  
-                  {(isMerging || mergedFileUrl) && (
-                    <div className="pt-4 border-t border-slate-200">
-                      <div className="progress-bar-modern">
-                        <motion.div 
-                          className="progress-fill-modern"
-                          initial={{ width: 0 }}
-                          animate={{ width: mergedFileUrl ? '100%' : `${progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {isMerging ? (
-                  <button disabled className="w-full modern-btn opacity-80 flex items-center justify-center gap-3">
-                    <Loader2 size={24} className="animate-spin" />
-                    ĐANG XỬ LÝ
-                  </button>
-                ) : mergedFileUrl ? (
-                  <div className="space-y-4">
-                    <button 
-                      onClick={downloadFile}
-                      className="w-full modern-btn !from-green-500 !to-emerald-600 flex items-center justify-center gap-3 shadow-xl shadow-green-500/20"
-                    >
-                      <Download size={22} />
-                      TẢI FILE VỀ
-                    </button>
-                    <button 
-                      onClick={() => setMergedFileUrl(null)}
-                      className="w-full modern-btn-secondary"
-                    >
-                      LÀM MỚI
-                    </button>
-                  </div>
-                ) : (
-                  <button 
-                    onClick={mergeFiles}
-                    disabled={files.length === 0}
-                    className={cn(
-                      "w-full modern-btn flex items-center justify-center gap-3",
-                      files.length === 0 && "opacity-50 cursor-not-allowed grayscale shadow-none"
-                    )}
-                  >
-                    GỘP FILE NGAY
-                    <ChevronRight size={22} />
-                  </button>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </main>
