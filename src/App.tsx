@@ -161,14 +161,15 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 md:p-8 font-sans">
-      <main className="w-full max-w-[100vw] space-y-6">
-        <div className="mb-8 flex justify-center">
-          <div className="w-full max-w-3xl p-4 md:p-5 bg-white/40 backdrop-blur-md rounded-3xl border border-white/60 shadow-[0_10px_30px_rgba(0,0,0,0.04)] relative overflow-hidden group">
+    <div className="h-screen w-screen overflow-hidden bg-slate-50 font-sans flex flex-col">
+      <main className="flex-1 flex flex-col p-4 md:p-6 gap-4 overflow-hidden">
+        {/* Top Section: Hero & Settings */}
+        <div className="flex flex-col gap-4 flex-shrink-0">
+          {/* Hero Container - Compact & Full Width */}
+          <div className="w-full p-3 md:p-4 bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm relative overflow-hidden group">
             <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            
-            <div className="relative flex items-center justify-center gap-4 md:gap-8">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center overflow-hidden shadow-xl shadow-primary/5 bg-white p-1 flex-shrink-0">
+            <div className="relative flex items-center justify-center gap-4">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shadow-sm bg-white p-1 flex-shrink-0">
                 <img 
                   src="https://i.postimg.cc/59K4PjLQ/logopdf.png" 
                   alt="Smart PDF Logo" 
@@ -176,46 +177,28 @@ export default function App() {
                   referrerPolicy="no-referrer"
                 />
               </div>
-              
               <div className="text-left">
-                <h1 className="text-2xl md:text-4xl font-black tracking-tighter text-slate-900 leading-none">
+                <h1 className="text-xl md:text-2xl font-black tracking-tighter text-slate-900 leading-none">
                   Smart <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-accent">PDF App</span>
                 </h1>
-                <p className="text-slate-400 font-bold text-[10px] md:text-xs uppercase tracking-[0.2em] mt-1">
+                <p className="text-slate-400 font-bold text-[8px] md:text-[10px] uppercase tracking-[0.2em]">
                   Gộp tệp tin siêu tốc
                 </p>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="space-y-8">
-          {/* Top Section: Settings & Actions */}
-          <div className="modern-card !p-6 md:!p-8 overflow-hidden relative">
-            {/* Decorative background element */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-primary/5 to-accent/5 rounded-full -mr-16 -mt-16 blur-3xl" />
+          {/* Settings Container - Full Width */}
+          <div className="modern-card !p-4 md:!p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-linear-to-br from-primary/5 to-accent/5 rounded-full -mr-12 -mt-12 blur-2xl" />
             
-            <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 items-center">
               {/* Filename Setting */}
-              <div className="lg:col-span-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                    <Settings2 size={12} className="text-primary" />
-                    Tên file kết quả
-                  </label>
-                  <AnimatePresence>
-                    {nameError && (
-                      <motion.span 
-                        initial={{ opacity: 0, x: 5 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0 }}
-                        className="text-[10px] font-bold text-red-500 uppercase"
-                      >
-                        Trống!
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </div>
+              <div className="lg:col-span-4 space-y-2">
+                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                  <Settings2 size={12} className="text-primary" />
+                  Tên file kết quả
+                </label>
                 <div className="relative group">
                   <input 
                     type="text" 
@@ -226,29 +209,29 @@ export default function App() {
                     }}
                     placeholder="Nhập tên file..."
                     className={cn(
-                      "w-full bg-slate-50/50 border rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-800 focus:outline-none focus:ring-4 transition-all pr-14",
+                      "w-full bg-slate-50/50 border rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:ring-4 transition-all pr-12",
                       nameError ? "border-red-200 focus:ring-red-50 bg-red-50/30" : "border-slate-100 focus:ring-primary/5 focus:border-primary/30 focus:bg-white"
                     )}
                   />
-                  <div className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 font-black text-xs">
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 font-black text-[10px]">
                     .pdf
                   </div>
                 </div>
               </div>
 
               {/* Quality Setting */}
-              <div className="lg:col-span-4 space-y-3">
+              <div className="lg:col-span-4 space-y-2">
                 <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                   <FileCode size={12} className="text-accent" />
                   Kích thước file
                 </label>
-                <div className="flex p-1 bg-slate-50/80 rounded-2xl border border-slate-100/50">
+                <div className="flex p-1 bg-slate-50/80 rounded-xl border border-slate-100/50">
                   {(Object.keys(qualitySettings) as Array<keyof typeof qualitySettings>).map((q) => (
                     <button
                       key={q}
                       onClick={() => setQuality(q)}
                       className={cn(
-                        "flex-1 py-2.5 text-[10px] font-black rounded-xl transition-all uppercase tracking-wider",
+                        "flex-1 py-1.5 text-[10px] font-black rounded-lg transition-all uppercase tracking-wider",
                         quality === q 
                           ? "bg-white text-primary shadow-sm border border-slate-100" 
                           : "text-slate-400 hover:text-slate-600"
@@ -261,8 +244,8 @@ export default function App() {
               </div>
 
               {/* Actions & Progress */}
-              <div className="lg:col-span-4 flex flex-col justify-end h-full pt-2 lg:pt-0">
-                <div className="flex justify-between items-center mb-3 px-1">
+              <div className="lg:col-span-4 flex flex-col justify-end pt-1">
+                <div className="flex justify-between items-center mb-2 px-1">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     {files.length} tệp • {formatBytes(files.reduce((acc, f) => acc + f.size, 0))}
                   </span>
@@ -270,26 +253,24 @@ export default function App() {
                 </div>
 
                 {isMerging ? (
-                  <div className="space-y-3">
-                    <div className="progress-bar-modern !h-12 flex items-center px-4 bg-slate-50 border border-slate-100">
-                      <motion.div 
-                        className="progress-fill-modern !h-8"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                         <Loader2 size={18} className="animate-spin text-primary mr-2" />
-                         <span className="text-[10px] font-black text-primary uppercase tracking-widest">Đang gộp...</span>
-                      </div>
+                  <div className="progress-bar-modern !h-10 flex items-center px-4 bg-slate-50 border border-slate-100">
+                    <motion.div 
+                      className="progress-fill-modern !h-6"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                       <Loader2 size={16} className="animate-spin text-primary mr-2" />
+                       <span className="text-[10px] font-black text-primary uppercase tracking-widest">Đang gộp...</span>
                     </div>
                   </div>
                 ) : mergedFileUrl ? (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2">
                     <button 
                       onClick={downloadFile}
-                      className="w-full modern-btn !py-3.5 !from-green-500 !to-emerald-600 flex items-center justify-center gap-2 shadow-xl shadow-green-500/20 !px-4 text-xs"
+                      className="w-full modern-btn !py-2.5 !from-green-500 !to-emerald-600 flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 !px-4 text-[10px]"
                     >
-                      <Download size={16} />
+                      <Download size={14} />
                       TẢI VỀ
                     </button>
                     <button 
@@ -297,7 +278,7 @@ export default function App() {
                         setMergedFileUrl(null);
                         setProgress(0);
                       }}
-                      className="w-full modern-btn-secondary !py-3.5 !px-4 text-xs"
+                      className="w-full modern-btn-secondary !py-2.5 !px-4 text-[10px]"
                     >
                       LÀM MỚI
                     </button>
@@ -307,111 +288,110 @@ export default function App() {
                     onClick={mergeFiles}
                     disabled={files.length === 0}
                     className={cn(
-                      "w-full modern-btn !py-3.5 flex items-center justify-center gap-2 text-xs",
+                      "w-full modern-btn !py-2.5 flex items-center justify-center gap-2 text-[10px]",
                       files.length === 0 && "opacity-50 cursor-not-allowed grayscale shadow-none"
                     )}
                   >
                     GỘP FILE NGAY
-                    <ChevronRight size={18} />
+                    <ChevronRight size={16} />
                   </button>
                 )}
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Bottom Section: File List / Dropzone */}
-          <div className="w-full">
+        {/* Bottom Section: File List - Occupies 70% of height */}
+        <div className="flex-1 min-h-0 h-[70vh] flex flex-col">
+          <div className="modern-card !p-0 flex-1 flex flex-col overflow-hidden">
             {files.length === 0 ? (
               <div 
                 {...getRootProps()} 
                 className={cn(
-                  "modern-card dropzone-modern flex flex-col items-center justify-center transition-all cursor-pointer min-h-[350px]",
-                  isDragActive ? "border-primary bg-white/80 scale-[0.99] shadow-2xl" : ""
+                  "flex-1 flex flex-col items-center justify-center p-10 transition-all cursor-pointer group",
+                  isDragActive ? "bg-primary/5" : "hover:bg-slate-50/50"
                 )}
               >
                 <input {...getInputProps()} />
-                <div className="w-20 h-20 bg-linear-to-br from-primary/10 to-accent/10 rounded-full flex items-center justify-center text-primary mb-6">
-                  <Upload size={40} />
+                <div className="w-24 h-24 rounded-[32px] bg-slate-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-white group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
+                  <Upload className={cn("text-slate-300 transition-colors duration-500", isDragActive ? "text-primary animate-bounce" : "group-hover:text-primary")} size={40} />
                 </div>
-                <h2 className="text-xl font-extrabold text-slate-800 mb-2">Kéo thả tệp vào đây</h2>
-                <p className="text-slate-400 text-center max-w-xs mb-8 text-sm font-medium leading-relaxed">
-                  Hỗ trợ PDF, JPG, PNG. Nhấn để chọn tệp từ máy tính.
-                </p>
-                <button className="modern-btn !py-3 !px-6 text-sm">
-                  Chọn tệp tin
-                </button>
+                <h2 className="text-2xl font-black text-slate-800 mb-2 tracking-tight">Kéo & Thả tệp PDF</h2>
+                <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">Hoặc nhấp để chọn từ máy tính</p>
               </div>
             ) : (
-              <div className="modern-card !p-8">
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-xl font-extrabold text-slate-800 flex items-center gap-3">
-                    Danh sách tệp tin
-                    <span className="text-xs font-black text-white bg-linear-to-r from-primary to-accent px-3 py-1 rounded-full shadow-sm">
-                      {files.length}
-                    </span>
-                  </h2>
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="p-4 border-bottom border-slate-100 flex justify-between items-center bg-white/50 backdrop-blur-sm z-10">
+                  <h2 className="text-xs font-black text-slate-800 uppercase tracking-[0.2em]">Danh sách tệp tin ({files.length})</h2>
                   <button 
                     onClick={removeAll}
-                    className="text-xs text-slate-400 hover:text-red-500 font-bold transition-all hover:scale-105"
+                    className="text-[10px] font-black text-red-400 hover:text-red-500 uppercase tracking-widest transition-colors"
                   >
-                    XÓA TẤT CẢ
+                    Xóa tất cả
                   </button>
                 </div>
-
-                <Reorder.Group axis="y" values={files} onReorder={setFiles} className="space-y-4">
-                  <AnimatePresence mode="popLayout">
-                    {files.map((file) => (
-                      <Reorder.Item
-                        key={file.id}
-                        value={file}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="bg-white/50 border border-white/60 rounded-2xl p-5 flex items-center gap-5 shadow-sm hover:shadow-xl hover:bg-white transition-all group cursor-grab active:cursor-grabbing"
-                      >
-                        <div className="text-slate-300 group-hover:text-primary transition-colors">
-                          <GripVertical size={20} />
-                        </div>
-                        
-                        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center flex-shrink-0 overflow-hidden border border-slate-100 shadow-inner">
-                          {file.preview ? (
-                            <img src={file.preview} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <FileText className="text-primary" size={24} />
-                          )}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-slate-800 truncate text-base">
-                            {file.name}
-                          </h3>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
-                            {formatBytes(file.size)} • {file.type.split('/')[1]?.toUpperCase() || 'FILE'}
-                          </p>
-                        </div>
-
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeFile(file.id);
-                          }}
-                          className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-300 hover:bg-red-50 hover:text-red-500 transition-all"
+                
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                  <Reorder.Group 
+                    axis="y" 
+                    values={files} 
+                    onReorder={setFiles}
+                    className="space-y-3"
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {files.map((file) => (
+                        <Reorder.Item 
+                          key={file.id}
+                          value={file}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          className="bg-white border border-slate-100 rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all group cursor-grab active:cursor-grabbing"
                         >
-                          <X size={20} />
-                        </button>
-                      </Reorder.Item>
-                    ))}
-                  </AnimatePresence>
-                </Reorder.Group>
+                          <div className="text-slate-300 group-hover:text-primary transition-colors">
+                            <GripVertical size={18} />
+                          </div>
+                          
+                          <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center flex-shrink-0 overflow-hidden border border-slate-100">
+                            {file.preview ? (
+                              <img src={file.preview} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <FileText className="text-primary" size={20} />
+                            )}
+                          </div>
 
-                <div 
-                  {...getRootProps()} 
-                  className="mt-6 border-2 border-dashed border-slate-100 rounded-2xl p-6 flex items-center justify-center hover:border-primary/40 hover:bg-white transition-all cursor-pointer group"
-                >
-                  <input {...getInputProps()} />
-                  <p className="text-xs font-black text-slate-400 group-hover:text-primary transition-colors uppercase tracking-[0.2em]">
-                    + THÊM TỆP TIN KHÁC
-                  </p>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-slate-800 truncate text-sm">
+                              {file.name}
+                            </h3>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
+                              {formatBytes(file.size)} • {file.type.split('/')[1]?.toUpperCase() || 'FILE'}
+                            </p>
+                          </div>
+
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeFile(file.id);
+                            }}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:bg-red-50 hover:text-red-500 transition-all"
+                          >
+                            <X size={16} />
+                          </button>
+                        </Reorder.Item>
+                      ))}
+                    </AnimatePresence>
+                  </Reorder.Group>
+
+                  <div 
+                    {...getRootProps()} 
+                    className="mt-4 border-2 border-dashed border-slate-100 rounded-xl p-4 flex items-center justify-center hover:border-primary/40 hover:bg-white transition-all cursor-pointer group"
+                  >
+                    <input {...getInputProps()} />
+                    <p className="text-[10px] font-black text-slate-400 group-hover:text-primary transition-colors uppercase tracking-[0.2em]">
+                      + THÊM TỆP TIN KHÁC
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
