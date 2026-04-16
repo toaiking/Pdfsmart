@@ -163,21 +163,32 @@ export default function App() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6 md:p-12 font-sans">
       <main className="max-w-5xl w-full space-y-8">
-        <div className="text-center space-y-2 mb-12">
-          <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/50 backdrop-blur-sm rounded-2xl border border-white/50 shadow-sm mb-4">
-            <div className="w-8 h-8 rounded-md flex items-center justify-center overflow-hidden">
-              <img 
-                src="https://i.postimg.cc/59K4PjLQ/logopdf.png" 
-                alt="Smart PDF Logo" 
-                className="w-full h-full object-contain"
-                referrerPolicy="no-referrer"
-              />
+        <div className="text-center mb-12">
+          <div className="inline-flex flex-col items-center gap-4 p-8 bg-white/40 backdrop-blur-md rounded-[40px] border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.04)] relative overflow-hidden group">
+            <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            
+            <div className="relative flex flex-col items-center gap-4">
+              <div className="w-20 h-20 rounded-3xl flex items-center justify-center overflow-hidden shadow-2xl shadow-primary/20 bg-white p-1">
+                <img 
+                  src="https://i.postimg.cc/59K4PjLQ/logopdf.png" 
+                  alt="Smart PDF Logo" 
+                  className="w-full h-full object-contain"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-slate-900">
+                  Smart <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-accent">PDF</span>
+                </h1>
+                <p className="text-slate-400 font-bold text-sm uppercase tracking-[0.3em] flex items-center justify-center gap-2">
+                  <span className="w-8 h-[2px] bg-slate-200" />
+                  Gộp tệp tin siêu tốc
+                  <span className="w-8 h-[2px] bg-slate-200" />
+                </p>
+              </div>
             </div>
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Smart PDF Pro</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">
-            Gộp tệp tin <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-accent">siêu tốc</span>
-          </h1>
         </div>
 
         <div className="space-y-8">
